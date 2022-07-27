@@ -107,8 +107,6 @@ uint32_t test_message_exchange()
 
     //Un-marshal the secret response data
     ke_status = umarshal_message_exchange_response(out_buff, &secret_response);
-    int ff = 3;
-    printMarshal(&ff);
 
 
     if(ke_status != SUCCESS)

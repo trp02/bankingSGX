@@ -55,7 +55,7 @@
 #include "EnclaveInitiator_u.h"
 
 #define ENCLAVE_INITIATOR_NAME "libenclave_initiator.signed.so"
-
+//#define ENCLAVE_INITIATOR_NAME "libenclave_seal.signed.so"
 // FOREIGN FUNCTIONS START
 
 
