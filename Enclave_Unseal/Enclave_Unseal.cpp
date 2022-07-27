@@ -28,7 +28,6 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-//tiral;
 #include "Enclave_Unseal_t.h"
 
 #include "sgx_trts.h"
