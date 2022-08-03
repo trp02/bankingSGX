@@ -40,7 +40,7 @@
 #define ENCLAVE_NAME_SEAL "libenclave_seal.signed.so"
 #define ENCLAVE_NAME_UNSEAL "libenclave_unseal.signed.so"
 #include <inttypes.h>
-//
+#include <iostream>
 
 
 #include <stdio.h>
@@ -53,7 +53,6 @@
 #include "sgx_urts.h"
 #include <string.h>
 #include "EnclaveInitiator_u.h"
-
 #define ENCLAVE_INITIATOR_NAME "libenclave_initiator.signed.so"
 //#define ENCLAVE_INITIATOR_NAME "libenclave_seal.signed.so"
 // FOREIGN FUNCTIONS START
@@ -66,15 +65,16 @@ void printMarshal(int *out_buff){
 
 int main(int argc, char* argv[])
 {    
-    void *ar[15];
 
+   /* void *ar[15];
     char**strng; 
     int numTrace = backtrace(ar, 15);
     strng = backtrace_symbols(ar, numTrace);
     for(int i = 0; i < numTrace; i++){
         printf("MAIN FUNTION %s\n", strng[i]);
-    }
-    
+        volatile unsigned int *p = (volatile unsigned int*)strng[i];
+        printf("VOLATILE : %u\n", *p);
+    }*/
  
  (void)argc, (void)argv;
 
@@ -88,8 +88,7 @@ int main(int argc, char* argv[])
     else if(user == 2){
         getInitialInfo();
     }
-   
-    
+
 
 
 /* 

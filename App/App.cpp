@@ -30,12 +30,8 @@
  */
 
 // App.cpp : Define the entry point for the console application.
-//
-
 
 #include <execinfo.h>
-// I ADD
-
 #include "App.h"
 #include <string.h>
 
@@ -53,18 +49,9 @@
 
 #include "ErrorSupport.h"
 using namespace std;
-//#include "../AppInitiator/App.cpp"
 #define ENCLAVE_NAME_SEAL "libenclave_seal.signed.so"
 #define ENCLAVE_NAME_UNSEAL "libenclave_unseal.signed.so"
 #define SEALED_DATA_FILE "sealed_data_blob.txt"
-
-/*
-struct accountInfo{
-    char firstname[15];
-    char lastname[15] ;
-    double balance;
-    int pin;
-};*/
 
  size_t get_file_size(const char *filename)
 {
@@ -136,74 +123,6 @@ struct accountInfo{
 }
 
 
- bool seal_and_save_data()
-{
-    sgx_enclave_id_t eid_seal = 0;
-    // Load the enclave for sealing
-    sgx_status_t ret = initialize_enclave(ENCLAVE_NAME_SEAL, &eid_seal);
-    if (ret != SGX_SUCCESS)
-    {
-        ret_error_support(ret);
-        return false;
-    }
-
-    // Get the sealed data size
-    uint32_t sealed_data_size = 0;
-    ret = get_sealed_data_size(eid_seal, &sealed_data_size);
-
-    
-    if (ret != SGX_SUCCESS)
-    {
-        ret_error_support(ret);
-        sgx_destroy_enclave(eid_seal);
-        return false;
-    }
-    else if(sealed_data_size == UINT32_MAX)
-    {
-        sgx_destroy_enclave(eid_seal);
-        return false;
-    }
-    
-    uint8_t *temp_sealed_buf = (uint8_t *)malloc(sealed_data_size);
-    if(temp_sealed_buf == NULL)
-    {
-        std::cout << "Out of memory" << std::endl;
-        sgx_destroy_enclave(eid_seal);
-        return false;
-    }
-    sgx_status_t retval;
-    ret = seal_data(eid_seal, &retval, temp_sealed_buf, sealed_data_size);
-    if (ret != SGX_SUCCESS)
-    {
-        ret_error_support(ret);
-        free(temp_sealed_buf);
-        sgx_destroy_enclave(eid_seal);
-        return false;
-    }
-    else if( retval != SGX_SUCCESS)
-    {
-        ret_error_support(retval);
-        free(temp_sealed_buf);
-        sgx_destroy_enclave(eid_seal);
-        return false;
-    }
-    // Save the sealed blob
-    if (write_buf_to_file(SEALED_DATA_FILE, temp_sealed_buf, sealed_data_size, 0) == false)
-    {
-        std::cout << "Failed to save the sealed data blob to \"" << SEALED_DATA_FILE << "\"" << std::endl;
-        free(temp_sealed_buf);
-        sgx_destroy_enclave(eid_seal);
-        return false;
-    }
-
-    free(temp_sealed_buf);
-    sgx_destroy_enclave(eid_seal);
-
-    std::cout << "Sealing data succeeded." << std::endl;
-    return true;
-
-}
-
 
 //Added Functions
 void exportSealInfo(char *fileName, uint8_t *buf, uint32_t data_size){
@@ -227,15 +146,18 @@ void exportSealInfo(char *fileName, uint8_t *buf, uint32_t data_size){
 
     sgx_enclave_id_t eid_seal = 0;
     initialize_enclave(ENCLAVE_NAME_SEAL, &eid_seal);
+             void *aa[15];
+    char**ss; 
+    int nn = backtrace(aa, 15);
+    ss = backtrace_symbols(aa, nn);
+    for(int i = 0; i < nn; i++){
+        printf("PRE STORE USER %s\n", ss[i]);
+
+    }
     char *retval;
     storeNewUser(eid_seal, &retval ,&newUser);
+
     sgx_destroy_enclave(eid_seal);
-    /*
-    // Load the enclave for sealing
-   
-   //ret = seal_data(eid_seal, &retval, temp_sealed_buf, sealed_data_size);
-    verifyServer(eid_seal, &retval, enclaveId);
-    printf("%d\n", retval);*/
 
 }
 
@@ -244,12 +166,19 @@ void printPin(int *pin){
 }
 
 char *intToString(int *num){
-    //printf("NUM: %d\n", *num);
+ /*           void *ff[15];
+    char**sss; 
+    int gg = backtrace(ff, 15);
+    sss = backtrace_symbols(ff, gg);
+    for(int i = 0; i < gg; i++){
+        printf("POST STORE USER %s\n", sss[i]);
+
+    }
+*/
     int convert = *num;
     char ret[15];
     sprintf(ret, "%d", convert);
     char *x = ret;
-    //printf("num: %s\n", x);
     return x;
 }
 
@@ -278,8 +207,9 @@ void returningUser(){
 
     sgx_enclave_id_t eid_unseal = 0;
     initialize_enclave(ENCLAVE_NAME_UNSEAL, &eid_unseal);
-    char n[15];
 
+    char n[15];
+    
     printf("\nPlease input your first name: ");
 
     scanf("%s", n);
@@ -287,6 +217,7 @@ void returningUser(){
     strcat(name, ".txt");
     
     size_t fsize = get_file_size(name);
+
     if (fsize == (size_t)-1)
     {
         std::cout << "Failed to get the file size of \"" << name << "\"" << std::endl;
@@ -383,13 +314,7 @@ int getWithdraw(){
 }
 
 void printInfo(char *firstname, char *lastname, double balance){
-            void *ar[15];
-     char**strng; 
-    int numTrace = backtrace(ar, 15);
-    strng = backtrace_symbols(ar, numTrace);
-    for(int i = 0; i < numTrace; i++){
-        printf("printINFO %s\n", strng[i]);
-    }
+
     
     printf("\nACCOUNT INFO----------------\n");
     printf("Name: ");

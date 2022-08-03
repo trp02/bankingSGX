@@ -115,7 +115,7 @@ else
 endif
 
 #App_Cpp_Files := $(wildcard App/*.cpp)
-App_Cpp_Files := $(wildcard App/App.cpp App/ErrorSupport.cpp App/loser.cpp)
+App_Cpp_Files := $(wildcard App/App.cpp App/ErrorSupport.cpp App/dummy.cpp)
 
 App_Include_Paths := -I$(SGX_SDK)/include
 
@@ -373,14 +373,14 @@ clean:
 	@rm -f .config_* $(App_Name) $(App_Objects) $(Enclave_Seal_Name) $(Enclave_Unseal_Name) $(Signed_Enclave_Seal_Name) $(Signed_Enclave_Unseal_Name)
 	@rm -f $(Enclave_Seal_Objects) $(Enclave_Unseal_Objects) App/Enclave_Seal_u.* App/Enclave_Unseal_u.* Enclave_Seal/Enclave_Seal_t.* Enclave_Unseal/Enclave_Unseal_t.*
 	@rm bin/appint ;\
-	@rm bin/appresponder ;\
 	for dir in $(SUB_DIR); do \
 		$(MAKE) -C $$dir clean; \
 	done ;\
 	rm -f util/*.o ;\
 	rm -f *.o ;\
-	rm bin/*.so 
-	
+	rm bin/*.so ;\
+	rm bin/appresponder ;\
+
 #@rm -rf $(OUTDIR)
 #	@rm bin/*.so
 
