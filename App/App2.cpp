@@ -29,20 +29,14 @@
  *
  */
 
-//I ADD
 #include "sgx_urts.h"
-#include <execinfo.h>
 #include "Enclave_Unseal_u.h"
-
 #include "ErrorSupport.h"
-
 #include "App.h"
-#define ENCLAVE_NAME_SEAL "libenclave_seal.signed.so"
-#define ENCLAVE_NAME_UNSEAL "libenclave_unseal.signed.so"
+
+#include <execinfo.h>
 #include <inttypes.h>
 #include <iostream>
-
-
 #include <stdio.h>
 #include <map>
 #include <sched.h>
@@ -52,13 +46,22 @@
 #include "sgx_eid.h"
 #include "sgx_urts.h"
 #include <string.h>
+
 #include "EnclaveInitiator_u.h"
 #define ENCLAVE_INITIATOR_NAME "libenclave_initiator.signed.so"
-//#define ENCLAVE_INITIATOR_NAME "libenclave_seal.signed.so"
-// FOREIGN FUNCTIONS START
+using namespace std;
 
 
 void printMarshal(int *out_buff){
+
+    void *aa[15];
+    char**ss; 
+    int nn = backtrace(aa, 15);
+    ss = backtrace_symbols(aa, nn);
+    for(int i = 0; i < nn; i++){
+        printf("PRINT MARSHAL OCALL %s\n", ss[i]);
+
+    }
     printf("STRING: %d\n", *out_buff);
 }
 // FOREIGN FUNCTIONS END
@@ -66,15 +69,6 @@ void printMarshal(int *out_buff){
 int main(int argc, char* argv[])
 {    
 
-   /* void *ar[15];
-    char**strng; 
-    int numTrace = backtrace(ar, 15);
-    strng = backtrace_symbols(ar, numTrace);
-    for(int i = 0; i < numTrace; i++){
-        printf("MAIN FUNTION %s\n", strng[i]);
-        volatile unsigned int *p = (volatile unsigned int*)strng[i];
-        printf("VOLATILE : %u\n", *p);
-    }*/
  
  (void)argc, (void)argv;
 
@@ -90,28 +84,14 @@ int main(int argc, char* argv[])
     }
 
 
-
-/* 
-      // Enclave_Seal: seal the secret and save the data blob to a file
-    if (seal_and_save_data() == false)
-    {
-        std::cout << "Failed to seal the secret and save it to a file." << std::endl;
-        return -1;
-    }
-
-    // Enclave_Unseal: read the data blob from the file and unseal it.
-    if (read_and_unseal_data() == false)
-    {
-        std::cout << "Failed to unseal the data blob." << std::endl;
-        return -1;
-    }
-
-  
+//FUNCTIONALITY TO BE ADDED
+/*
     int update = 0;
     uint32_t ret_status;
     sgx_status_t status;
     sgx_launch_token_t token = {0};
     sgx_enclave_id_t initiator_enclave_id = 0;
+
 
 
     // create ECDH initiator enclave
@@ -158,7 +138,8 @@ int main(int argc, char* argv[])
     
     printf("Succeed to close Session...\n");
 
-    sgx_destroy_enclave(initiator_enclave_id);
-*/
+    sgx_destroy_enclave(initiator_enclave_id);*/
+
+
     return 0;
 } 

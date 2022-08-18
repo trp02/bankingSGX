@@ -49,8 +49,6 @@
 
 #include "ErrorSupport.h"
 using namespace std;
-#define ENCLAVE_NAME_SEAL "libenclave_seal.signed.so"
-#define ENCLAVE_NAME_UNSEAL "libenclave_unseal.signed.so"
 #define SEALED_DATA_FILE "sealed_data_blob.txt"
 
  size_t get_file_size(const char *filename)
@@ -116,6 +114,7 @@ using namespace std;
     // Call sgx_create_enclave to initialize an enclave instance
     ret = sgx_create_enclave(enclave_path, SGX_DEBUG_FLAG, NULL, NULL, eid, NULL);
     if (ret != SGX_SUCCESS) {
+        printf("failed to load enclave %s, error code is 0x%x.\n", enclave_path, ret);
         return ret;
     }
 
@@ -127,7 +126,7 @@ using namespace std;
 //Added Functions
 void exportSealInfo(char *fileName, uint8_t *buf, uint32_t data_size){
     if(write_buf_to_file(fileName, buf, data_size, 0) == false){
-        cout << "FAILED" << endl;
+        cout << "SEALING FAILED" << endl;
     }
 }
 
@@ -145,36 +144,40 @@ void exportSealInfo(char *fileName, uint8_t *buf, uint32_t data_size){
     cin >> newUser.balance;
 
     sgx_enclave_id_t eid_seal = 0;
+
+
     initialize_enclave(ENCLAVE_NAME_SEAL, &eid_seal);
-             void *aa[15];
+
+    char *retval;
+
+    storeNewUser(eid_seal, &retval ,&newUser);
+    sgx_destroy_enclave(eid_seal);
+
+ }
+
+void printPin(int *pin){
+    printf("PIN: %p  %d\n", pin, *pin);
+}
+
+char *intToString(int *num, int *num2){
+
+    //MEMORY 
+    *num2 = 55;
+    void *aa[15];
     char**ss; 
     int nn = backtrace(aa, 15);
     ss = backtrace_symbols(aa, nn);
     for(int i = 0; i < nn; i++){
-        printf("PRE STORE USER %s\n", ss[i]);
+        printf("OCALL ADDRESSES %s\n", ss[i]);
 
     }
-    char *retval;
-    storeNewUser(eid_seal, &retval ,&newUser);
+    int untrustedVar = 0;
+    printf("UNTRUSTED VAR ADDRES: %p\n", &untrustedVar);
+    printf("MARSHALED POINTER   : %p\n", num);
+    printf("NON-MARSHALED PNTR  : %p\n\n\n",num2);
+    //MEMORY 
 
-    sgx_destroy_enclave(eid_seal);
-
-}
-
-void printPin(int *pin){
-    printf("PIN: %d\n", *pin);
-}
-
-char *intToString(int *num){
- /*           void *ff[15];
-    char**sss; 
-    int gg = backtrace(ff, 15);
-    sss = backtrace_symbols(ff, gg);
-    for(int i = 0; i < gg; i++){
-        printf("POST STORE USER %s\n", sss[i]);
-
-    }
-*/
+    
     int convert = *num;
     char ret[15];
     sprintf(ret, "%d", convert);
@@ -272,6 +275,7 @@ void returningUser(){
         }
         int transactionStatus = 0;
         processTransaction(eid_unseal, &transactionStatus, choice);
+   
         if(transactionStatus == 1){
             printf("Action completed\n");
         }
@@ -293,32 +297,31 @@ void printMem(uint8_t *str, uint32_t data_size){
 
 void ocall_print_string(const char *str)
 {
+    cout <<"OCALL STRING: " << str << endl;
+        cout <<"OCALL STRING: " << str[1] << endl;
 
-    printf("%s\n: ", str);
+   // printf("OCALL PRINT STRING : %s\n: ", str);
     
 
 }
 
 int getDeposit(){
-    int u;
+    double u;
     printf("Enter amount to deposit: ");
-    scanf("%d", &u);
-    return u;  
+    scanf("%lf", &u);
+    return (int)(u * 100);  
 }
 
 int getWithdraw(){
-    int u;
+    double u;
     printf("Enter amount to withdraw: ");
-    scanf("%d", &u);
-    return u;  
-}
+    scanf("%lf", &u);
+    return (int)(u * 100); }
 
 void printInfo(char *firstname, char *lastname, double balance){
-
     
     printf("\nACCOUNT INFO----------------\n");
     printf("Name: ");
-
     printf(" %s %s\n", firstname, lastname);
     printf("Account balance: %.2f\n", balance);
     printf("----------------------------\n");
@@ -326,6 +329,9 @@ void printInfo(char *firstname, char *lastname, double balance){
 }
 
 
+void abortPro(sgx_status_t ab){
+    ret_error_support(ab);
+}
 
 
 
@@ -352,29 +358,3 @@ void printInfo(char *firstname, char *lastname, double balance){
 
 
 
-
-
-
-
-/*
-int main(int argc, char* argv[])
-{
-
-    
-    (void)argc, (void)argv;
-
-    // Enclave_Seal: seal the secret and save the data blob to a file
-    if (seal_and_save_data() == false)
-    {
-        std::cout << "Failed to seal the secret and save it to a file." << std::endl;
-        return -1;
-    }
-
-    // Enclave_Unseal: read the data blob from the file and unseal it.
-    if (read_and_unseal_data() == false)
-    {
-        std::cout << "Failed to unseal the data blob." << std::endl;
-        return -1;
-    }
-    return 0;
-}*/

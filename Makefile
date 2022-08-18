@@ -381,6 +381,3 @@ clean:
 	rm bin/*.so ;\
 	rm bin/appresponder ;\
 
-#@rm -rf $(OUTDIR)
-#	@rm bin/*.so
-
