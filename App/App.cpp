@@ -56,13 +56,6 @@ using namespace std;
 #define ENCLAVE_NAME_UNSEAL "libenclave_unseal.signed.so"
 #define SEALED_DATA_FILE "sealed_data_blob.txt"
 
-/*
-struct accountInfo{
-    char firstname[15];
-    char lastname[15] ;
-    double balance;
-    int pin;
-};*/
 
  size_t get_file_size(const char *filename)
 {
@@ -149,7 +142,7 @@ struct accountInfo{
     uint32_t sealed_data_size = 0;
     ret = get_sealed_data_size(eid_seal, &sealed_data_size);
 
-    
+
     if (ret != SGX_SUCCESS)
     {
         ret_error_support(ret);
@@ -161,7 +154,7 @@ struct accountInfo{
         sgx_destroy_enclave(eid_seal);
         return false;
     }
-    
+
     uint8_t *temp_sealed_buf = (uint8_t *)malloc(sealed_data_size);
     if(temp_sealed_buf == NULL)
     {
@@ -212,7 +205,7 @@ struct accountInfo{
         ret_error_support(ret);
         return false;
     }
-    
+
     // Read the sealed blob from the file
     size_t fsize = get_file_size(SEALED_DATA_FILE);
     if (fsize == (size_t)-1)
@@ -256,10 +249,10 @@ struct accountInfo{
 
     free(temp_buf);
     sgx_destroy_enclave(eid_unseal);
-   
+
     std::cout << "Unseal succeeded." << std::endl;
     return true;
-} 
+}
 
 //Added Functions
 void exportSealInfo(char *fileName, uint8_t *buf, uint32_t data_size){
@@ -270,7 +263,7 @@ void exportSealInfo(char *fileName, uint8_t *buf, uint32_t data_size){
 
 //gets initial info and sends to enclave to be encrypted
  void getInitialInfo(){
-    
+
     accountInfo newUser;
     printf("First Name: ");
     cin >> newUser.firstname;
@@ -286,14 +279,7 @@ void exportSealInfo(char *fileName, uint8_t *buf, uint32_t data_size){
     char *retval;
     storeNewUser(eid_seal, &retval ,&newUser);
     printf("Your personal information is: %s\n\n", retval);
-    //free(retval);
     sgx_destroy_enclave(eid_seal);
-    /*
-    // Load the enclave for sealing
-   
-   //ret = seal_data(eid_seal, &retval, temp_sealed_buf, sealed_data_size);
-    verifyServer(eid_seal, &retval, enclaveId);
-    printf("%d\n", retval);*/
 
 }
 
@@ -341,7 +327,7 @@ void returningUser(){
     scanf("%s", n);
     char *name = n;
     strcat(name, ".txt");
-    
+
     size_t fsize = get_file_size(name);
     if (fsize == (size_t)-1)
     {
@@ -349,7 +335,7 @@ void returningUser(){
         sgx_destroy_enclave(eid_unseal);
         exit(1);
     }
-    
+
     uint8_t *temp_buf = (uint8_t *)malloc(fsize);
     if(temp_buf == NULL)
     {
@@ -388,7 +374,7 @@ void returningUser(){
         sgx_destroy_enclave(eid_unseal);
         exit(1);
     }
-    
+
     int choice = 1;
     while(true){
         choice = transactionUI();
@@ -406,10 +392,10 @@ void returningUser(){
     }
 
     sgx_destroy_enclave(eid_unseal);
-    
+
 }
 
-//print string 
+//print string
 void printMem(uint8_t *str, uint32_t data_size){
     char *xd = (char*)str;
     cout << "MemInfo: " << xd << endl;
@@ -418,11 +404,11 @@ void printMem(uint8_t *str, uint32_t data_size){
 
 void ocall_print_string(const char *str)
 {
-    /* Proxy/Bridge will check the length and null-terminate 
-     * the input string to prevent buffer overflow. 
+    /* Proxy/Bridge will check the length and null-terminate
+     * the input string to prevent buffer overflow.
      */
     printf("%s\n: ", str);
-    
+
  /*   for(long unsigned int i = 0; i < sizeof(str); i++){
         if((int)str[i] < 0) break;
         printf("%d\n", str[i]);
@@ -434,14 +420,14 @@ int getDeposit(){
     int u;
     printf("Enter amount to deposit: ");
     scanf("%d", &u);
-    return u;  
+    return u;
 }
 
 int getWithdraw(){
     int u;
     printf("Enter amount to withdraw: ");
     scanf("%d", &u);
-    return u;  
+    return u;
 }
 
 void printInfo(char *firstname, char *lastname, double balance){
@@ -489,7 +475,7 @@ void printInfo(char *firstname, char *lastname, double balance){
 int main(int argc, char* argv[])
 {
 
-    
+
     (void)argc, (void)argv;
 
     // Enclave_Seal: seal the secret and save the data blob to a file
