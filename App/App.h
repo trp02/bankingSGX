@@ -1,5 +1,6 @@
 
-#pragma once
+#ifndef _APP_H
+#define _APP_H
 
 #include <string.h>
 #include <assert.h>
@@ -29,4 +30,4 @@
  void getInitialInfo();
  void returningUser();
 
-
+#endif

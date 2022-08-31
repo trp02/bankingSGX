@@ -1,23 +1,55 @@
-
+/*
+ * Copyright (C) 2011-2021 Intel Corporation. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright
+ *     notice, this list of conditions and the following disclaimer in
+ *     the documentation and/or other materials provided with the
+ *     distribution.
+ *   * Neither the name of Intel Corporation nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ */
 
 // App.cpp : Define the entry point for the console application.
 
+#include <execinfo.h>
 #include "App.h"
 #include <string.h>
+
+//I ADDED TOP
+
 #include <string.h>
 #include <assert.h>
 #include <fstream>
 #include <thread>
 #include <iostream>
+
 #include "sgx_urts.h"
 #include "Enclave_Seal_u.h"
 #include "Enclave_Unseal_u.h"
+
 #include "ErrorSupport.h"
 using namespace std;
-#define ENCLAVE_NAME_SEAL "libenclave_seal.signed.so"
-#define ENCLAVE_NAME_UNSEAL "libenclave_unseal.signed.so"
 #define SEALED_DATA_FILE "sealed_data_blob.txt"
-
 
  size_t get_file_size(const char *filename)
 {
@@ -72,6 +104,7 @@ using namespace std;
     return true;
 }
 
+// Initialize the enclave:
 //   Call sgx_create_enclave to initialize an enclave instance
 
  sgx_status_t initialize_enclave(const char* enclave_path, sgx_enclave_id_t *eid)
@@ -81,6 +114,7 @@ using namespace std;
     // Call sgx_create_enclave to initialize an enclave instance
     ret = sgx_create_enclave(enclave_path, SGX_DEBUG_FLAG, NULL, NULL, eid, NULL);
     if (ret != SGX_SUCCESS) {
+        printf("failed to load enclave %s, error code is 0x%x.\n", enclave_path, ret);
         return ret;
     }
 
@@ -88,146 +122,17 @@ using namespace std;
 }
 
 
- bool seal_and_save_data()
-{
-    sgx_enclave_id_t eid_seal = 0;
-    // Load the enclave for sealing
-    sgx_status_t ret = initialize_enclave(ENCLAVE_NAME_SEAL, &eid_seal);
-    if (ret != SGX_SUCCESS)
-    {
-        ret_error_support(ret);
-        return false;
-    }
-
-    // Get the sealed data size
-    uint32_t sealed_data_size = 0;
-    ret = get_sealed_data_size(eid_seal, &sealed_data_size);
-
-
-    if (ret != SGX_SUCCESS)
-    {
-        ret_error_support(ret);
-        sgx_destroy_enclave(eid_seal);
-        return false;
-    }
-    else if(sealed_data_size == UINT32_MAX)
-    {
-        sgx_destroy_enclave(eid_seal);
-        return false;
-    }
-
-    uint8_t *temp_sealed_buf = (uint8_t *)malloc(sealed_data_size);
-    if(temp_sealed_buf == NULL)
-    {
-        std::cout << "Out of memory" << std::endl;
-        sgx_destroy_enclave(eid_seal);
-        return false;
-    }
-    sgx_status_t retval;
-    ret = seal_data(eid_seal, &retval, temp_sealed_buf, sealed_data_size);
-    if (ret != SGX_SUCCESS)
-    {
-        ret_error_support(ret);
-        free(temp_sealed_buf);
-        sgx_destroy_enclave(eid_seal);
-        return false;
-    }
-    else if( retval != SGX_SUCCESS)
-    {
-        ret_error_support(retval);
-        free(temp_sealed_buf);
-        sgx_destroy_enclave(eid_seal);
-        return false;
-    }
-    // Save the sealed blob
-    if (write_buf_to_file(SEALED_DATA_FILE, temp_sealed_buf, sealed_data_size, 0) == false)
-    {
-        std::cout << "Failed to save the sealed data blob to \"" << SEALED_DATA_FILE << "\"" << std::endl;
-        free(temp_sealed_buf);
-        sgx_destroy_enclave(eid_seal);
-        return false;
-    }
-
-    free(temp_sealed_buf);
-    sgx_destroy_enclave(eid_seal);
-
-    std::cout << "Sealing data succeeded." << std::endl;
-    return true;
-
-}
-
- bool read_and_unseal_data()
-{
-    sgx_enclave_id_t eid_unseal = 0;
-    // Load the enclave for unsealing
-    sgx_status_t ret = initialize_enclave(ENCLAVE_NAME_UNSEAL, &eid_unseal);
-    if (ret != SGX_SUCCESS)
-    {
-        ret_error_support(ret);
-        return false;
-    }
-
-    // Read the sealed blob from the file
-    size_t fsize = get_file_size(SEALED_DATA_FILE);
-    if (fsize == (size_t)-1)
-    {
-        std::cout << "Failed to get the file size of \"" << SEALED_DATA_FILE << "\"" << std::endl;
-        sgx_destroy_enclave(eid_unseal);
-        return false;
-    }
-    uint8_t *temp_buf = (uint8_t *)malloc(fsize);
-    if(temp_buf == NULL)
-    {
-        std::cout << "Out of memory" << std::endl;
-        sgx_destroy_enclave(eid_unseal);
-        return false;
-    }
-    if (read_file_to_buf(SEALED_DATA_FILE, temp_buf, fsize) == false)
-    {
-        std::cout << "Failed to read the sealed data blob from \"" << SEALED_DATA_FILE << "\"" << std::endl;
-        free(temp_buf);
-        sgx_destroy_enclave(eid_unseal);
-        return false;
-    }
-
-    // Unseal the sealed blob
-    sgx_status_t retval;
-    ret = unseal_data(eid_unseal, &retval, temp_buf, fsize);
-    if (ret != SGX_SUCCESS)
-    {
-        ret_error_support(ret);
-        free(temp_buf);
-        sgx_destroy_enclave(eid_unseal);
-        return false;
-    }
-    else if(retval != SGX_SUCCESS)
-    {
-        ret_error_support(retval);
-        free(temp_buf);
-        sgx_destroy_enclave(eid_unseal);
-        return false;
-    }
-
-    free(temp_buf);
-    sgx_destroy_enclave(eid_unseal);
-
-    std::cout << "Unseal succeeded." << std::endl;
-    return true;
-}
 
 //Added Functions
 void exportSealInfo(char *fileName, uint8_t *buf, uint32_t data_size){
     if(write_buf_to_file(fileName, buf, data_size, 0) == false){
-        cout << "FAILED" << endl;
+        cout << "SEALING FAILED" << endl;
     }
 }
 
-
-
-
 //gets initial info and sends to enclave to be encrypted
  void getInitialInfo(){
-
+    
     accountInfo newUser;
     printf("First Name: ");
     cin >> newUser.firstname;
@@ -239,19 +144,40 @@ void exportSealInfo(char *fileName, uint8_t *buf, uint32_t data_size){
     cin >> newUser.balance;
 
     sgx_enclave_id_t eid_seal = 0;
+
+
     initialize_enclave(ENCLAVE_NAME_SEAL, &eid_seal);
+
     char *retval;
+
     storeNewUser(eid_seal, &retval ,&newUser);
-    printf("Your personal information is: %s\n\n", retval);
     sgx_destroy_enclave(eid_seal);
 
-}
-//helper function
+ }
+
 void printPin(int *pin){
-    printf("PIN: %d\n", *pin);
+    printf("PIN: %p  %d\n", pin, *pin);
 }
-//helper function
-char *intToString(int *num){
+
+char *intToString(int *num, int *num2){
+
+    //MEMORY 
+    *num2 = 55;
+    void *aa[15];
+    char**ss; 
+    int nn = backtrace(aa, 15);
+    ss = backtrace_symbols(aa, nn);
+    for(int i = 0; i < nn; i++){
+        printf("OCALL ADDRESSES %s\n", ss[i]);
+
+    }
+    int untrustedVar = 0;
+    printf("UNTRUSTED VAR ADDRES: %p\n", &untrustedVar);
+    printf("MARSHALED POINTER   : %p\n", num);
+    printf("NON-MARSHALED PNTR  : %p\n\n\n",num2);
+    //MEMORY 
+
+    
     int convert = *num;
     char ret[15];
     sprintf(ret, "%d", convert);
@@ -284,20 +210,24 @@ void returningUser(){
 
     sgx_enclave_id_t eid_unseal = 0;
     initialize_enclave(ENCLAVE_NAME_UNSEAL, &eid_unseal);
+
     char n[15];
-    printf("Please input your first name: ");
+    
+    printf("\nPlease input your first name: ");
+
     scanf("%s", n);
     char *name = n;
     strcat(name, ".txt");
-
+    
     size_t fsize = get_file_size(name);
+
     if (fsize == (size_t)-1)
     {
         std::cout << "Failed to get the file size of \"" << name << "\"" << std::endl;
         sgx_destroy_enclave(eid_unseal);
         exit(1);
     }
-
+    
     uint8_t *temp_buf = (uint8_t *)malloc(fsize);
     if(temp_buf == NULL)
     {
@@ -336,7 +266,7 @@ void returningUser(){
         sgx_destroy_enclave(eid_unseal);
         exit(1);
     }
-
+    
     int choice = 1;
     while(true){
         choice = transactionUI();
@@ -345,6 +275,7 @@ void returningUser(){
         }
         int transactionStatus = 0;
         processTransaction(eid_unseal, &transactionStatus, choice);
+   
         if(transactionStatus == 1){
             printf("Action completed\n");
         }
@@ -352,42 +283,45 @@ void returningUser(){
             printf("Action could not be completed\n");
         }
     }
-
+  
     sgx_destroy_enclave(eid_unseal);
-
+    
 }
 
-//print string
+//print string 
 void printMem(uint8_t *str, uint32_t data_size){
     char *xd = (char*)str;
     cout << "MemInfo: " << xd << endl;
     (void)data_size;
 }
 
-//helper function
 void ocall_print_string(const char *str)
 {
-    printf("%s\n: ", str);
+    cout <<"OCALL STRING: " << str << endl;
+        cout <<"OCALL STRING: " << str[1] << endl;
+
+   // printf("OCALL PRINT STRING : %s\n: ", str);
+    
+
 }
 
 int getDeposit(){
-    int u;
+    double u;
     printf("Enter amount to deposit: ");
-    scanf("%d", &u);
-    return u;
+    scanf("%lf", &u);
+    return (int)(u * 100);  
 }
 
 int getWithdraw(){
-    int u;
+    double u;
     printf("Enter amount to withdraw: ");
-    scanf("%d", &u);
-    return u;
-}
+    scanf("%lf", &u);
+    return (int)(u * 100); }
 
 void printInfo(char *firstname, char *lastname, double balance){
+    
     printf("\nACCOUNT INFO----------------\n");
     printf("Name: ");
-
     printf(" %s %s\n", firstname, lastname);
     printf("Account balance: %.2f\n", balance);
     printf("----------------------------\n");
@@ -395,6 +329,9 @@ void printInfo(char *firstname, char *lastname, double balance){
 }
 
 
+void abortPro(sgx_status_t ab){
+    ret_error_support(ab);
+}
 
 
 
@@ -421,29 +358,3 @@ void printInfo(char *firstname, char *lastname, double balance){
 
 
 
-
-
-
-
-/*
-int main(int argc, char* argv[])
-{
-
-
-    (void)argc, (void)argv;
-
-    // Enclave_Seal: seal the secret and save the data blob to a file
-    if (seal_and_save_data() == false)
-    {
-        std::cout << "Failed to seal the secret and save it to a file." << std::endl;
-        return -1;
-    }
-
-    // Enclave_Unseal: read the data blob from the file and unseal it.
-    if (read_and_unseal_data() == false)
-    {
-        std::cout << "Failed to unseal the data blob." << std::endl;
-        return -1;
-    }
-    return 0;
-}*/
