@@ -2,15 +2,12 @@
 Sealing enclave: Takes primary info about new user and seals it
 
 */
-//IADD 
 #include "sgx_eid.h"
 #include <cstdlib>
 #include <stdlib.h>
 #include <stdio.h>
 #include <sgx_key.h>
-//
 #include "Enclave_Seal_t.h"
-
 #include "sgx_trts.h"
 #include "sgx_tseal.h"
 #include "stdio.h"
@@ -112,9 +109,7 @@ char* storeNewUser(struct accountInfo *user){
     if(strcmp(failed, ret) == 0){
         return failed;
     }
-  //  char dataToEncrypt[BUFSIZ] = {*ret};
     memcpy(encrypt_data, ret, strlen(ret));
-   // memcpy(aad_mac_text, ret, strlen(ret));
     uint32_t sealed_data_size = 0;
 
     //get sealed data blob

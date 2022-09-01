@@ -63,7 +63,11 @@ sgx_measurement_t g_responder_mrsigner = {
  *   When it succeeds to create ECDH session, the session context is saved in g_session.
  * */
 extern "C" uint32_t test_create_session()
-{
+      // demo function
+{      /*int x = 3;
+        printMarshal(&x);*/
+      // demo function
+
         return create_session(&g_session);
 }
 

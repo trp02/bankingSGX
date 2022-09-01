@@ -1,9 +1,7 @@
 /*
 Unsealing enclave: Unseals data, processes transactions and reseals
-
 */
 #include "Enclave_Unseal_t.h"
-
 #include "sgx_trts.h"
 #include "sgx_tseal.h"
 #include "stdio.h"
@@ -213,9 +211,8 @@ char* concatData(){
     return dataToEncrypt;
 }
 
-
+//seals updated info 
 void sealUpdate(){
-    
 
     char* connectedData = concatData();
     //memcpy(aad_mac_text, connectedData, strlen(connectedData));

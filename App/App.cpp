@@ -1,42 +1,9 @@
-/*
- * Copyright (C) 2011-2021 Intel Corporation. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in
- *     the documentation and/or other materials provided with the
- *     distribution.
- *   * Neither the name of Intel Corporation nor the names of its
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- */
 
 // App.cpp : Define the entry point for the console application.
 
 #include <execinfo.h>
 #include "App.h"
 #include <string.h>
-
-//I ADDED TOP
-
 #include <string.h>
 #include <assert.h>
 #include <fstream>
@@ -51,6 +18,7 @@
 using namespace std;
 #define SEALED_DATA_FILE "sealed_data_blob.txt"
 
+//file I/O functions start
  size_t get_file_size(const char *filename)
 {
     std::ifstream ifs(filename, std::ios::in | std::ios::binary);
@@ -103,10 +71,10 @@ using namespace std;
 
     return true;
 }
+//file I/O functions end
 
 // Initialize the enclave:
 //   Call sgx_create_enclave to initialize an enclave instance
-
  sgx_status_t initialize_enclave(const char* enclave_path, sgx_enclave_id_t *eid)
 {
     sgx_status_t ret = SGX_ERROR_UNEXPECTED;
@@ -221,6 +189,7 @@ void returningUser(){
     
     size_t fsize = get_file_size(name);
 
+    //check errors in file
     if (fsize == (size_t)-1)
     {
         std::cout << "Failed to get the file size of \"" << name << "\"" << std::endl;
@@ -244,6 +213,7 @@ void returningUser(){
     }
 
     sgx_status_t retval;
+    //send data to enclave to be unsealed
     unseal_data(eid_unseal, &retval, temp_buf, fsize);
     if(retval != SGX_SUCCESS)
     {
@@ -297,11 +267,7 @@ void printMem(uint8_t *str, uint32_t data_size){
 
 void ocall_print_string(const char *str)
 {
-    cout <<"OCALL STRING: " << str << endl;
-        cout <<"OCALL STRING: " << str[1] << endl;
-
-   // printf("OCALL PRINT STRING : %s\n: ", str);
-    
+    cout << str << endl;
 
 }
 
@@ -328,7 +294,7 @@ void printInfo(char *firstname, char *lastname, double balance){
 
 }
 
-
+//print error code
 void abortPro(sgx_status_t ab){
     ret_error_support(ab);
 }
