@@ -1,4 +1,4 @@
-//Most of the I/O
+//Most of the I/O for system
 // App.cpp : Define the entry point for the console application.
 
 #include <execinfo.h>
