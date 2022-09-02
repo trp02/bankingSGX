@@ -9,7 +9,7 @@ How to Build/Execute the Sample Code
 1. Install Intel(R) SGX SDK for Linux* OS
 2. Make sure your environment is set:
     $ source ${sgx-sdk-install-path}/environment
-3. Build the project with the prepared Makefile:
+3. Build the project with the prepared Makefile. Some modes might not work depending on hardware:
     a. Hardware Mode, Debug build:
         $ make
     b. Hardware Mode, Pre-release build:
