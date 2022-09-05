@@ -91,7 +91,9 @@ using namespace std;
 
 
 
-//Added Functions
+//Added Functions//
+
+//writes encrypted buffer to file
 void exportSealInfo(char *fileName, uint8_t *buf, uint32_t data_size){
     if(write_buf_to_file(fileName, buf, data_size, 0) == false){
         cout << "SEALING FAILED" << endl;
@@ -100,7 +102,7 @@ void exportSealInfo(char *fileName, uint8_t *buf, uint32_t data_size){
 
 //gets initial info and sends to enclave to be encrypted
  void getInitialInfo(){
-    
+
     accountInfo newUser;
     printf("First Name: ");
     cin >> newUser.firstname;
@@ -129,10 +131,10 @@ void printPin(int *pin){
 
 char *intToString(int *num, int *num2){
 
-    //MEMORY 
+    //MEMORY//
     *num2 = 55;
     void *aa[15];
-    char**ss; 
+    char**ss;
     int nn = backtrace(aa, 15);
     ss = backtrace_symbols(aa, nn);
     for(int i = 0; i < nn; i++){
@@ -143,9 +145,9 @@ char *intToString(int *num, int *num2){
     printf("UNTRUSTED VAR ADDRES: %p\n", &untrustedVar);
     printf("MARSHALED POINTER   : %p\n", num);
     printf("NON-MARSHALED PNTR  : %p\n\n\n",num2);
-    //MEMORY 
+    //MEMORY//
 
-    
+
     int convert = *num;
     char ret[15];
     sprintf(ret, "%d", convert);
@@ -173,20 +175,20 @@ int transactionUI(){
 
 }
 
-//pulls up returning user info
+//opens up returning user info
 void returningUser(){
 
     sgx_enclave_id_t eid_unseal = 0;
     initialize_enclave(ENCLAVE_NAME_UNSEAL, &eid_unseal);
 
     char n[15];
-    
+
     printf("\nPlease input your first name: ");
 
     scanf("%s", n);
     char *name = n;
     strcat(name, ".txt");
-    
+
     size_t fsize = get_file_size(name);
 
     //check errors in file
@@ -196,7 +198,7 @@ void returningUser(){
         sgx_destroy_enclave(eid_unseal);
         exit(1);
     }
-    
+
     uint8_t *temp_buf = (uint8_t *)malloc(fsize);
     if(temp_buf == NULL)
     {
@@ -212,8 +214,8 @@ void returningUser(){
         exit(1);
     }
 
-    sgx_status_t retval;
     //send data to enclave to be unsealed
+    sgx_status_t retval;
     unseal_data(eid_unseal, &retval, temp_buf, fsize);
     if(retval != SGX_SUCCESS)
     {
@@ -236,7 +238,7 @@ void returningUser(){
         sgx_destroy_enclave(eid_unseal);
         exit(1);
     }
-    
+
     int choice = 1;
     while(true){
         choice = transactionUI();
@@ -245,7 +247,7 @@ void returningUser(){
         }
         int transactionStatus = 0;
         processTransaction(eid_unseal, &transactionStatus, choice);
-   
+
         if(transactionStatus == 1){
             printf("Action completed\n");
         }
@@ -253,12 +255,12 @@ void returningUser(){
             printf("Action could not be completed\n");
         }
     }
-  
+
     sgx_destroy_enclave(eid_unseal);
-    
+
 }
 
-//print string 
+//helper print function
 void printMem(uint8_t *str, uint32_t data_size){
     char *xd = (char*)str;
     cout << "MemInfo: " << xd << endl;
@@ -275,7 +277,7 @@ int getDeposit(){
     double u;
     printf("Enter amount to deposit: ");
     scanf("%lf", &u);
-    return (int)(u * 100);  
+    return (int)(u * 100);
 }
 
 int getWithdraw(){
@@ -285,7 +287,7 @@ int getWithdraw(){
     return (int)(u * 100); }
 
 void printInfo(char *firstname, char *lastname, double balance){
-    
+
     printf("\nACCOUNT INFO----------------\n");
     printf("Name: ");
     printf(" %s %s\n", firstname, lastname);
@@ -298,29 +300,3 @@ void printInfo(char *firstname, char *lastname, double balance){
 void abortPro(sgx_status_t ab){
     ret_error_support(ab);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
